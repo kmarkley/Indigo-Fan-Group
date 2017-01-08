@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<PluginConfig>
+    <Field id='thermFreq' type='menu' defaultValue='5'>
+        <Label>Temperature Update Frequency:</Label>
+        <List>
+            <Option value="0">Disable</Option>
+            <Option value="1">1 Minute</Option>
+            <Option value="2">2 Minutes</Option>
+            <Option value="5">5 Minutes</Option>
+            <Option value="10">10 Minutes</Option>
+            <Option value="15">15 Minutes</Option>
+            <Option value="30">30 Minutes</Option>
+            <Option value="60">60 Minutes</Option>
+        </List>
+    </Field>
+    <Field id="freqLabel" type="label" fontColor="darkgray" fontSize="small" alignWithControl="true">
+        <Label>How often should status requests be sent to thermostats when 'Thermostat Assist' devices are active?</Label>
+    </Field>
+    <Field id="debugSeparator" type="separator"/>
+	<Field id="showDebugInfo" type="checkbox">
+		<Label>Enable debuging:</Label>
+		<Description>(not recommended)</Description>
+	</Field>
+</PluginConfig>

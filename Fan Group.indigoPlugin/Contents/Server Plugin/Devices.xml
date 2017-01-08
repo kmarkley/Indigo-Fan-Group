@@ -1,0 +1,76 @@
+<?xml version='1.0'?>
+<Devices>
+	<Device type='speedcontrol' id='fanGroupFull'>
+	    <Name>Fan Group Full</Name>
+	    <ConfigUI>
+	        <Field id='statusLogic' type='menu' defaultValue='avg'>
+	            <Label>Status Logic:</Label>
+                <List>
+                    <Option value='avg'>Average</Option>
+                    <Option value='min'>Minimum</Option>
+                    <Option value='max'>Maximum</Option>
+                    <Option value='all'>All Match</Option>
+                </List>
+            </Field>
+            <Field id="sep1" type="separator"/>
+            <Field id='fans' type='list' rows='8'>
+                <Label>Select Fans:</Label>
+                <List class='self' method='getSpeedControlDeviceList'/>
+            </Field>
+        </ConfigUI>
+    </Device>
+	<Device type='relay' id='fanGroupSimple'>
+	    <Name>Fan Group Simple</Name>
+	    <ConfigUI>
+	        <Field id='onLevel' type='menu' defaultValue='1'>
+	            <Label>ON command level:</Label>
+                <List>
+                    <Option value='1'>Low</Option>
+                    <Option value='2'>Medium</Option>
+                    <Option value='3'>High</Option>
+                </List>
+	        </Field>
+            <Field id="sep1" type="separator"/>
+            <Field id='fans' type='list' rows='8'>
+                <Label>Select Fans:</Label>
+                <List class='self' method='getSpeedControlDeviceList'/>
+            </Field>
+        </ConfigUI>
+    </Device>
+	<Device type='sensor' id='thermAssist'>
+	    <Name>Thermostat Assist</Name>
+	    <ConfigUI>
+	        <Field id='thermostat' type='menu'>
+	            <Label>Thermostat:</Label>
+                <List class='indigo.devices' filter='indigo.thermostat'/>
+	        </Field>
+	        <Field id='onLevel' type='menu' defaultValue='1'>
+	            <Label>ON command level:</Label>
+                <List>
+                    <Option value='1'>Low</Option>
+                    <Option value='2'>Medium</Option>
+                    <Option value='3'>High</Option>
+                </List>
+	        </Field>
+            <Field id='onThreshhold' type='textfield' defaultValue='2.0'>
+                <Label>ON Threshhold:</Label>
+            </Field>
+            <Field id='offThreshhold' type='textfield' defaultValue='1.0'>
+                <Label>OFF Threshhold:</Label>
+            </Field>
+            <Field id='onOverride' type='checkbox' defaultValue='true'>
+                <Label>Override ON?:</Label>
+                <Description>Set fans to ON level regardless of prior state.</Description>
+            </Field>
+            <Field id='offOverride' type='checkbox' defaultValue='true'>
+                <Label>Override OFF?:</Label>
+                <Description>Turn fans OFF regardless of changes since ON.</Description>
+            </Field>
+            <Field id="sep1" type="separator"/>
+            <Field id='fans' type='list' rows='8'>
+                <Label>Select Fans:</Label>
+                <List class='self' method='getSpeedControlDeviceList'/>
+            </Field>
+        </ConfigUI>
+    </Device>
+</Devices>
