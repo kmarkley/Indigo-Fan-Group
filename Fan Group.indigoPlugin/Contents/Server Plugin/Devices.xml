@@ -30,6 +30,16 @@
                     <Option value='3'>High</Option>
                 </List>
 	        </Field>
+	        <Field id='statusLogic' type='menu' defaultValue='any'>
+	            <Label>Status Logic:</Label>
+                <List>
+                    <Option value='any'>Any ON</Option>
+                    <Option value='avg'>Average</Option>
+                    <Option value='min'>Minimum</Option>
+                    <Option value='max'>Maximum</Option>
+                    <Option value='all'>All Match</Option>
+                </List>
+            </Field>
             <Field id='fansSep' type='separator'/>
             <Field id='fans' type='list' rows='8'>
                 <Label>Select Fans:</Label>
@@ -69,11 +79,11 @@
                     <Option value='3'>High</Option>
                 </List>
 	        </Field>
-            <Field id='onThreshhold' type='textfield' defaultValue='2.0'>
-                <Label>ON Threshhold:</Label>
+            <Field id='onThreshold' type='textfield' defaultValue='2.0'>
+                <Label>ON Threshold:</Label>
             </Field>
-            <Field id='offThreshhold' type='textfield' defaultValue='1.0'>
-                <Label>OFF Threshhold:</Label>
+            <Field id='offThreshold' type='textfield' defaultValue='1.0'>
+                <Label>OFF Threshold:</Label>
             </Field>
             <Field id='onOverride' type='checkbox' defaultValue='true'>
                 <Label>Override ON?:</Label>

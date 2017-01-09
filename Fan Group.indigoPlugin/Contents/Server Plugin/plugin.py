@@ -100,6 +100,7 @@ class Plugin(indigo.PluginBase):
                 therm = None
                 nextTemp = None
             self.deviceDict[dev.id] = {'dev':dev, 'fanDict':fanDict, 'therm':therm, 'nextTemp':nextTemp}
+            self.updateDeviceStatus(dev)
     
     ########################################
     def deviceStopComm(self, dev):
@@ -113,7 +114,7 @@ class Plugin(indigo.PluginBase):
         errorsDict = indigo.Dict()
         
         if typeId == 'thermAssist':
-            for key in ['onThreshhold','offThreshhold']:
+            for key in ['onThreshold','offThreshold']:
                 if valuesDict.get(key,"") == "":
                     errorsDict[key] = "Required"
                 else:
@@ -123,8 +124,8 @@ class Plugin(indigo.PluginBase):
                             raise
                     except: 
                         errorsDict[key] = "Must be positive real number"
-            if float(valuesDict['offThreshhold']) > float(valuesDict['offThreshhold']):
-                errorsDict['offThreshhold'] = "Must be less than or equal to ON Threshhold"
+            if float(valuesDict['offThreshold']) > float(valuesDict['offThreshold']):
+                errorsDict['offThreshold'] = "Must be less than or equal to ON Threshold"
         
         if len(errorsDict) > 0:
             return (False, valuesDict, errorsDict)
@@ -158,34 +159,45 @@ class Plugin(indigo.PluginBase):
                 fanIndex = 0.0
                 for fanId, fan in fanDict.items():
                     fanIndex += fan.speedIndex
-                dev.updateStateOnServer(key='speedIndex', value=(int(round(fanIndex/len(fanDict)))))
+                setSpeed = int(round(fanIndex/len(fanDict)))
             elif statusLogic == "min":
-                fanLevel = min(fan.speedLevel for fanId, fan in fanDict.items())
-                dev.updateStateOnServer(key='speedLevel', value=fanLevel)
+                setSpeed = min(fan.speedLevel for fanId, fan in fanDict.items())
             elif statusLogic == "max":
-                fanLevel = max(fan.speedLevel for fanId, fan in fanDict.items())
-                dev.updateStateOnServer(key='speedLevel', value=fanLevel)
+                setSpeed = max(fan.speedLevel for fanId, fan in fanDict.items())
             elif statusLogic == "all":
                 for i in range(4):
                     if all(fan.speedIndex == i for fanId, fan in fanDict.items()):
-                        dev.updateStateOnServer(key='speedIndex', value=i)
+                        setSpeed = i
                         break
                 else:
                     dev.updateStateOnServer(key='speedIndex', value=0)
+            dev.updateStateOnServer(key='speedIndex', value=setSpeed)
         
         elif dev.deviceTypeId == "fanGroupSimple":
-            if any(fan.speedLevel > 0 for fanId, fan in fanDict.items()):
-                dev.updateStateOnServer(key='onOffState', value=True)
-            else:
-                dev.updateStateOnServer(key='onOffState', value=False)
+            statusLogic = theProps.get('statusLogic',"any")
+            onLevel = int(theProps.get('onLevel',"1"))
+            if statusLogic == "any":
+                onState = any(fan.speedLevel > 0 for fanId, fan in fanDict.items())
+            elif statusLogic == "avg":
+                fanIndex = 0.0
+                for fanId, fan in fanDict.items():
+                    fanIndex += fan.speedIndex
+                onState = int(round(fanIndex/len(fanDict))) >= onLevel
+            elif statusLogic == "min":
+                onState = min(fan.speedLevel for fanId, fan in fanDict.items()) >= onLevel
+            elif statusLogic == "max":
+                onState = max(fan.speedLevel for fanId, fan in fanDict.items()) >= onLevel
+            elif statusLogic == "all":
+                onState = all(fan.speedIndex == onLevel for fanId, fan in fanDict.items())
+            dev.updateStateOnServer(key='onOffState', value=onState)
         
         elif dev.deviceTypeId == "thermAssist" and thermFlag:
             therm = self.deviceDict[dev.id]['therm']
             coolDelta = therm.temperatures[0] - therm.coolSetpoint
             heatDelta = therm.heatSetpoint - therm.temperatures[0]
             tempDelta = max([coolDelta,heatDelta])
-            onLimit   = tempDelta > float(theProps['onThreshhold'])
-            offLimit  = tempDelta > float(theProps['offThreshhold']) and dev.onState
+            onLimit   = tempDelta > float(theProps['onThreshold'])
+            offLimit  = tempDelta > float(theProps['offThreshold']) and dev.onState
             onFlag    = (therm.coolIsOn or therm.heatIsOn) and (onLimit or offLimit)
             
             onLevel   = int(theProps['onLevel'])
