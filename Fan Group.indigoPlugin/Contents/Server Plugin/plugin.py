@@ -4,6 +4,7 @@
 # http://www.indigodomo.com
 
 import indigo
+import time
 
 # Note the "indigo" module is automatically imported and made available inside
 # our global name space by the host process.
@@ -36,7 +37,6 @@ class Plugin(indigo.PluginBase):
         if self.debug:
             self.logger.debug("Debug logging enabled")
         self.deviceDict = dict()
-        self.thermFreq = int(self.pluginPrefs.get('thermFreq',"5"))
         indigo.devices.subscribeToChanges()
 
     ########################################
@@ -48,7 +48,6 @@ class Plugin(indigo.PluginBase):
     def closedPrefsConfigUi(self, valuesDict, userCancelled):
         self.logger.debug("closedPrefsConfigUi")
         if not userCancelled:
-            self.thermFreq = int(valuesDict.get('thermFreq',"5"))
             self.debug = valuesDict.get("showDebugInfo",False)
             if self.debug:
                 self.logger.debug("Debug logging enabled")
@@ -64,21 +63,19 @@ class Plugin(indigo.PluginBase):
     
     ########################################
     def runConcurrentThread(self):
+        self.logger.debug("runConcurrentThread")
         try:
             while True:
-                self.logger.debug("runConcurrentThread")
-                thermList = []
-                if self.thermFreq:
-                    for devId in self.deviceDict:
-                        dev = self.deviceDict[devId]['dev']
-                        if dev.deviceTypeId == 'thermAssist' and dev.onState:
-                            thermList.append(self.deviceDict[devId]['therm'].id)
-                    for thermId in set(thermList):
-                        self.logger.debug("  thermostat status request: "+unicode(thermId))
-                        indigo.device.statusRequest(thermId, suppressLogging=(not self.debug))
-                    self.sleep(self.thermFreq*60)
-                else:
-                    self.sleep(5*60)
+                loopTime = time.time()
+                for devId in self.deviceDict:
+                    dev = self.deviceDict[devId]['dev']
+                    if dev.deviceTypeId == 'thermAssist' and dev.onState and self.deviceDict[devId]['nextTemp']:
+                        if self.deviceDict[devId]['nextTemp'] < loopTime:
+                            therm = self.deviceDict[devId]['therm']
+                            self.logger.debug("thermostat status request: "+therm.name)
+                            indigo.device.statusRequest(therm.id, suppressLogging=(not self.debug))
+                            self.deviceDict[devId]['nextTemp'] = loopTime + int(dev.pluginProps['tempFreq'])
+                self.sleep(loopTime+10-time.time())
         except self.StopThread:
             pass    # Optionally catch the StopThread exception and do any needed cleanup.
     
@@ -98,9 +95,11 @@ class Plugin(indigo.PluginBase):
             thermId = int(theProps.get('thermostat',"0"))
             if thermId:
                 therm = indigo.devices[thermId]
+                nextTemp = time.time() + int(theProps.get('tempFreq',"300"))
             else:
                 therm = None
-            self.deviceDict[dev.id] = {'dev':dev, 'fanDict':fanDict, 'therm':therm}
+                nextTemp = None
+            self.deviceDict[dev.id] = {'dev':dev, 'fanDict':fanDict, 'therm':therm, 'nextTemp':nextTemp}
     
     ########################################
     def deviceStopComm(self, dev):
@@ -197,6 +196,7 @@ class Plugin(indigo.PluginBase):
                 if theProps['onOverride'] or allOff:
                     self.setGroupSpeedIndex(dev, onLevel)
                     dev.updateStateOnServer(key='onOffState', value=True)
+                    self.deviceDict[dev.id]['nextTemp'] = time.time() + int(theProps['tempFreq'])
             elif not onFlag and dev.onState:
                 dev.updateStateOnServer(key='onOffState', value=False)
                 if theProps['offOverride'] or allOn:

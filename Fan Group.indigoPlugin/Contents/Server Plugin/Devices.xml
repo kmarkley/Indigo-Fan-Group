@@ -12,7 +12,7 @@
                     <Option value='all'>All Match</Option>
                 </List>
             </Field>
-            <Field id="sep1" type="separator"/>
+            <Field id='fansSep' type='separator'/>
             <Field id='fans' type='list' rows='8'>
                 <Label>Select Fans:</Label>
                 <List class='self' method='getSpeedControlDeviceList'/>
@@ -23,14 +23,14 @@
 	    <Name>Fan Group Simple</Name>
 	    <ConfigUI>
 	        <Field id='onLevel' type='menu' defaultValue='1'>
-	            <Label>ON command level:</Label>
+	            <Label>ON Level:</Label>
                 <List>
                     <Option value='1'>Low</Option>
                     <Option value='2'>Medium</Option>
                     <Option value='3'>High</Option>
                 </List>
 	        </Field>
-            <Field id="sep1" type="separator"/>
+            <Field id='fansSep' type='separator'/>
             <Field id='fans' type='list' rows='8'>
                 <Label>Select Fans:</Label>
                 <List class='self' method='getSpeedControlDeviceList'/>
@@ -44,8 +44,25 @@
 	            <Label>Thermostat:</Label>
                 <List class='indigo.devices' filter='indigo.thermostat'/>
 	        </Field>
+            <Field id='tempFreq' type='menu' defaultValue='300'>
+                <Label>Temp Freq:</Label>
+                <List>
+                    <Option value='0'>Disable</Option>
+                    <Option value='60'>1 Minute</Option>
+                    <Option value='120'>2 Minutes</Option>
+                    <Option value='300'>5 Minutes</Option>
+                    <Option value='600'>10 Minutes</Option>
+                    <Option value='900'>15 Minutes</Option>
+                    <Option value='1800'>30 Minutes</Option>
+                    <Option value='3600'>60 Minutes</Option>
+                </List>
+            </Field>
+            <Field id='freqLabel' type='label' fontColor='darkgray' fontSize='small' alignWithControl='true'>
+                <Label>How often should status requests be sent to thermostats when device is active?</Label>
+            </Field>
+            <Field id='thermSep' type='separator'/>
 	        <Field id='onLevel' type='menu' defaultValue='1'>
-	            <Label>ON command level:</Label>
+	            <Label>ON Level:</Label>
                 <List>
                     <Option value='1'>Low</Option>
                     <Option value='2'>Medium</Option>
@@ -66,7 +83,7 @@
                 <Label>Override OFF?:</Label>
                 <Description>Turn fans OFF regardless of changes since ON.</Description>
             </Field>
-            <Field id="sep1" type="separator"/>
+            <Field id='fansSep' type='separator'/>
             <Field id='fans' type='list' rows='8'>
                 <Label>Select Fans:</Label>
                 <List class='self' method='getSpeedControlDeviceList'/>
