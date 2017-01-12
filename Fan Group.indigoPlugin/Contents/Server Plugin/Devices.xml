@@ -68,7 +68,7 @@
                 </List>
             </Field>
             <Field id='freqLabel' type='label' fontColor='darkgray' fontSize='small' alignWithControl='true'>
-                <Label>How often should status requests be sent to thermostats when device is active?</Label>
+                <Label>How often should plugin request temperature update from thermostat when device is active?</Label>
             </Field>
             <Field id='thermSep' type='separator'/>
 	        <Field id='onLevel' type='menu' defaultValue='1'>

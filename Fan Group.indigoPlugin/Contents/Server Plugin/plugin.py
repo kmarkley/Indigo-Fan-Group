@@ -124,8 +124,9 @@ class Plugin(indigo.PluginBase):
                             raise
                     except: 
                         errorsDict[key] = "Must be positive real number"
-            if float(valuesDict['offThreshold']) > float(valuesDict['offThreshold']):
-                errorsDict['offThreshold'] = "Must be less than or equal to ON Threshold"
+            if not errorsDict:
+                if float(valuesDict['offThreshold']) > float(valuesDict['offThreshold']):
+                    errorsDict['offThreshold'] = "Must be less than or equal to ON Threshold"
         
         if len(errorsDict) > 0:
             return (False, valuesDict, errorsDict)
@@ -153,12 +154,13 @@ class Plugin(indigo.PluginBase):
             # this is a dummy fan
             pass
         
+        # FAN GROUP FULL
         elif dev.deviceTypeId == "fanGroupFull":
             statusLogic = theProps.get('statusLogic',"avg")
             if statusLogic == "avg":
                 fanIndex = 0.0
                 for fanId, fan in fanDict.items():
-                    fanIndex += fan.speedIndex
+                    fanIndex += float(fan.speedIndex)
                 setSpeed = int(round(fanIndex/len(fanDict)))
             elif statusLogic == "min":
                 setSpeed = min(fan.speedLevel for fanId, fan in fanDict.items())
@@ -170,9 +172,10 @@ class Plugin(indigo.PluginBase):
                         setSpeed = i
                         break
                 else:
-                    dev.updateStateOnServer(key='speedIndex', value=0)
+                    setSpeed = 0
             dev.updateStateOnServer(key='speedIndex', value=setSpeed)
         
+        # FAN GROUP SIMPLE
         elif dev.deviceTypeId == "fanGroupSimple":
             statusLogic = theProps.get('statusLogic',"any")
             onLevel = int(theProps.get('onLevel',"1"))
@@ -181,7 +184,7 @@ class Plugin(indigo.PluginBase):
             elif statusLogic == "avg":
                 fanIndex = 0.0
                 for fanId, fan in fanDict.items():
-                    fanIndex += fan.speedIndex
+                    fanIndex += float(fan.speedIndex)
                 onState = int(round(fanIndex/len(fanDict))) >= onLevel
             elif statusLogic == "min":
                 onState = min(fan.speedLevel for fanId, fan in fanDict.items()) >= onLevel
@@ -191,6 +194,7 @@ class Plugin(indigo.PluginBase):
                 onState = all(fan.speedIndex == onLevel for fanId, fan in fanDict.items())
             dev.updateStateOnServer(key='onOffState', value=onState)
         
+        # THERMOSTAT ASSIST
         elif dev.deviceTypeId == "thermAssist" and thermFlag:
             therm = self.deviceDict[dev.id]['therm']
             coolDelta = therm.temperatures[0] - therm.coolSetpoint
@@ -201,7 +205,7 @@ class Plugin(indigo.PluginBase):
             onFlag    = (therm.coolIsOn or therm.heatIsOn) and (onLimit or offLimit)
             
             onLevel   = int(theProps['onLevel'])
-            allOn     = all(fan.speedIndex == onLevel for fanId, fan in fanDict.items())
+            allLev    = all(fan.speedIndex == onLevel for fanId, fan in fanDict.items())
             allOff    = all(fan.speedIndex == 0       for fanId, fan in fanDict.items())
             
             if onFlag and not dev.onState:
@@ -211,20 +215,29 @@ class Plugin(indigo.PluginBase):
                     self.deviceDict[dev.id]['nextTemp'] = time.time() + int(theProps['tempFreq'])
             elif not onFlag and dev.onState:
                 dev.updateStateOnServer(key='onOffState', value=False)
-                if theProps['offOverride'] or allOn:
+                if theProps['offOverride'] or allLev:
                     self.setGroupSpeedIndex(dev, 0)
     
     ########################################
     # Device updated
     ########################################
     def deviceUpdated(self, oldDev, newDev):
-        if (oldDev.pluginId == self.pluginId) or (newDev.pluginId == self.pluginId):
+        
+        # device belongs to plugin
+        if newDev.pluginId == self.pluginId:
+            indigo.PluginBase.deviceUpdated(self, oldDev, newDev)
+            # update local copy
+            if newDev.id in self.deviceDict:
+                self.deviceDict[newDev.id]['dev'] = newDev
+        
+        # device is being changed to something else
+        elif oldDev.pluginId == self.pluginId:
             indigo.PluginBase.deviceUpdated(self, oldDev, newDev)
         
+        # speedcontrol device
         elif isinstance(newDev, indigo.SpeedControlDevice) and (newDev.speedLevel != oldDev.speedLevel):
             for devId in self.deviceDict:
-                fanDict = self.deviceDict[devId]['fanDict']
-                for fanId, fan in fanDict.items():
+                for fanId, fan in self.deviceDict[devId]['fanDict'].items():
                     if newDev.id == fanId:
                         self.logger.debug("deviceUpdated: "+newDev.name)
                         # keep a copy of the updated fan
@@ -232,7 +245,8 @@ class Plugin(indigo.PluginBase):
                         # update the fan group device
                         self.updateDeviceStatus(self.deviceDict[devId]['dev'])
                         break
-                    
+        
+        # thermostat device
         elif isinstance(newDev, indigo.ThermostatDevice) and (newDev.states != oldDev.states):
             for devId in self.deviceDict:
                 therm = self.deviceDict[devId]['therm']
@@ -248,38 +262,82 @@ class Plugin(indigo.PluginBase):
     ########################################
     def actionControlSpeedControl(self, action, dev):
         self.logger.debug("actionControlSpeedControl: "+dev.name)
-        if action.speedControlAction == indigo.kSpeedControlAction.SetSpeedIndex:
+        # TURN ON
+        if action.speedControlAction == indigo.kSpeedControlAction.TurnOn:
+            self.logger.info('"%s" on' % dev.name)
+            self.setGroupSpeedIndex(dev, 1)
+        # TURN OFF
+        elif action.speedControlAction == indigo.kSpeedControlAction.TurnOff:
+            self.logger.info('"%s" off' % dev.name)
+            self.setGroupSpeedIndex(dev, 0)
+        # TOGGLE
+        elif action.speedControlAction == indigo.kSpeedControlAction.Toggle:
+            self.logger.info('"%s" %s' % (dev.name, ['on','off'][dev.onState]))
+            self.setGroupSpeedIndex(dev, [0,1][dev.onState])
+        # SET SPEED INDEX
+        elif action.speedControlAction == indigo.kSpeedControlAction.SetSpeedIndex:
             self.logger.info('"%s" set motor speed to %s' % (dev.name, kSpeedIndex[action.actionValue]))
             self.setGroupSpeedIndex(dev, action.actionValue)
+        # SET SPEED LEVEL
+        elif action.speedControlAction == indigo.kSpeedControlAction.SetSpeedLevel:
+            self.logger.info('"%s" set motor speed to %s' % (dev.name, action.actionValue))
+            self.setGroupSpeedLevel(dev, action.actionValue)
+        # INCREASE SPEED INDEX
+        elif action.speedControlAction == indigo.kSpeedControlAction.IncreaseSpeedIndex:
+            newSpeedIndex = dev.speedIndex + action.actionValue
+            if newSpeedIndex > 3:
+                newSpeedIndex = 3
+            self.logger.info('"%s" set motor speed to %s' % (dev.name, kSpeedIndex[newSpeedIndex]))
+            self.setGroupSpeedIndex(dev, newSpeedIndex)
+        # DECREASE SPEED INDEX
+        elif action.speedControlAction == indigo.kSpeedControlAction.DecreaseSpeedIndex:
+            newSpeedIndex = dev.speedIndex - action.actionValue
+            if newSpeedIndex < 0:
+                newSpeedIndex = 0
+            self.logger.info('"%s" set motor speed to %s' % (dev.name, kSpeedIndex[newSpeedIndex]))
+            self.setGroupSpeedIndex(dev, newSpeedIndex)
+        # STATUS REQUEST
         elif action.speedControlAction == indigo.kUniversalAction.RequestStatus:
             self.logger.info('"%s" status update' % dev.name)
             self.updateDeviceStatus(dev)
+        # UNKNOWN
         else:
-            self.logger.error("Unknown action: "+unicode(action.speedControlAction))
+            self.logger.debug('"%s" %s request ignored' % (dev.name, unicode(action.speedControlAction)))
+            
     
     ########################################
     def actionControlDimmerRelay(self, action, dev):
         self.logger.debug("actionControlDimmerRelay: "+dev.name)
+        # TURN ON
         if action.deviceAction == indigo.kDeviceAction.TurnOn:
             self.logger.info('"%s" on' % dev.name)
             self.setGroupSpeedIndex(dev, int(dev.pluginProps.get('onLevel',1)))
+        # TURN OFF
         elif action.deviceAction == indigo.kDeviceAction.TurnOff:
             self.logger.info('"%s" off' % dev.name)
             self.setGroupSpeedIndex(dev, 0)
+        # TOGGLE
+        elif action.deviceAction == indigo.kSpeedControlAction.Toggle:
+            self.logger.info('"%s" %s' % (dev.name, ['on','off'][dev.onState]))
+            self.setGroupSpeedIndex(dev, [0,int(dev.pluginProps.get('onLevel',1))][dev.onState])
+        # STATUS REQUEST
         elif action.deviceAction == indigo.kUniversalAction.RequestStatus:
             self.logger.info('"%s" status update' % dev.name)
             self.updateDeviceStatus(dev)
+        # UNKNOWN
         else:
-            self.logger.error("Unknown action: "+unicode(action.deviceAction))
+            self.logger.debug('"%s" %s request ignored' % (dev.name, unicode(action.deviceAction)))
     
     ########################################
     def actionControlSensor(self, action, dev):
-        self.logger.debug(u"actionControlSensor: "+dev.name)
+        self.logger.debug("actionControlSensor: "+dev.name)
+        # STATUS REQUEST
         if action.sensorAction == indigo.kUniversalAction.RequestStatus:
             self.logger.info('"%s" status request' % dev.name)
             self.updateDeviceStatus(dev)
+        # UNKNOWN
         else:
-            self.logger.error("Unknown action: "+unicode(action.sensorAction))
+            self.logger.debug('"%s" %s request ignored' % (dev.name, unicode(action.sensorAction)))
     
     ########################################
     # Menu Methods
@@ -315,3 +373,12 @@ class Plugin(indigo.PluginBase):
         else: # this is a dummy fan
             dev.updateStateOnServer(key='speedIndex', value=speedIndex)
     
+    ########################################
+    def setGroupSpeedLevel(self, dev, speedLevel):
+        fanDict = self.deviceDict[dev.id]['fanDict']
+        if fanDict:
+            for fanId, fan in fanDict.items():
+                if fan.speedLevel != speedLevel:
+                    indigo.speedcontrol.setSpeedLevel(fanId, value=speedLevel)
+        else: # this is a dummy fan
+            dev.updateStateOnServer(key='speedLevel', value=speedLevel)
