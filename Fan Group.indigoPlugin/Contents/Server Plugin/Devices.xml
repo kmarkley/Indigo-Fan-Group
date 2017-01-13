@@ -25,6 +25,7 @@
 	        <Field id='onLevel' type='menu' defaultValue='1'>
 	            <Label>ON Level:</Label>
                 <List>
+                    <Option value='0'>Off</Option>
                     <Option value='1'>Low</Option>
                     <Option value='2'>Medium</Option>
                     <Option value='3'>High</Option>

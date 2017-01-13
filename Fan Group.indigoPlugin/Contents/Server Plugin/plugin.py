@@ -210,10 +210,13 @@ class Plugin(indigo.PluginBase):
             
             if onFlag and not dev.onState:
                 if theProps['onOverride'] or allOff:
-                    self.setGroupSpeedIndex(dev, onLevel)
+                    self.logger.info('"%s" on' dev.name)
                     dev.updateStateOnServer(key='onOffState', value=True)
-                    self.deviceDict[dev.id]['nextTemp'] = time.time() + int(theProps['tempFreq'])
+                    self.setGroupSpeedIndex(dev, onLevel)
+                    if self.deviceDict[dev.id]['nextTemp']:
+                        self.deviceDict[dev.id]['nextTemp'] = time.time() + int(theProps['tempFreq'])
             elif not onFlag and dev.onState:
+                self.logger.info('"%s" off' dev.name)
                 dev.updateStateOnServer(key='onOffState', value=False)
                 if theProps['offOverride'] or allLev:
                     self.setGroupSpeedIndex(dev, 0)
@@ -224,14 +227,10 @@ class Plugin(indigo.PluginBase):
     def deviceUpdated(self, oldDev, newDev):
         
         # device belongs to plugin
-        if newDev.pluginId == self.pluginId:
-            indigo.PluginBase.deviceUpdated(self, oldDev, newDev)
-            # update local copy
+        if newDev.pluginId == self.pluginId or oldDev.pluginId == self.pluginId:
+            # update local copy (will be removed/overwritten if communication is stopped/re-started)
             if newDev.id in self.deviceDict:
                 self.deviceDict[newDev.id]['dev'] = newDev
-        
-        # device is being changed to something else
-        elif oldDev.pluginId == self.pluginId:
             indigo.PluginBase.deviceUpdated(self, oldDev, newDev)
         
         # speedcontrol device
@@ -273,7 +272,7 @@ class Plugin(indigo.PluginBase):
         # TOGGLE
         elif action.speedControlAction == indigo.kSpeedControlAction.Toggle:
             self.logger.info('"%s" %s' % (dev.name, ['on','off'][dev.onState]))
-            self.setGroupSpeedIndex(dev, [0,1][dev.onState])
+            self.setGroupSpeedIndex(dev, [1,0][dev.onState])
         # SET SPEED INDEX
         elif action.speedControlAction == indigo.kSpeedControlAction.SetSpeedIndex:
             self.logger.info('"%s" set motor speed to %s' % (dev.name, kSpeedIndex[action.actionValue]))
@@ -317,9 +316,9 @@ class Plugin(indigo.PluginBase):
             self.logger.info('"%s" off' % dev.name)
             self.setGroupSpeedIndex(dev, 0)
         # TOGGLE
-        elif action.deviceAction == indigo.kSpeedControlAction.Toggle:
+        elif action.deviceAction == indigo.kDeviceAction.Toggle:
             self.logger.info('"%s" %s' % (dev.name, ['on','off'][dev.onState]))
-            self.setGroupSpeedIndex(dev, [0,int(dev.pluginProps.get('onLevel',1))][dev.onState])
+            self.setGroupSpeedIndex(dev, [int(dev.pluginProps.get('onLevel',1)),0][dev.onState])
         # STATUS REQUEST
         elif action.deviceAction == indigo.kUniversalAction.RequestStatus:
             self.logger.info('"%s" status update' % dev.name)
