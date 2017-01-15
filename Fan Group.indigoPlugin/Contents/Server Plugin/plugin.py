@@ -209,13 +209,13 @@ class Plugin(indigo.PluginBase):
             
             if onFlag and not dev.onState:
                 if theProps['onOverride'] or allOff:
-                    self.logger.info('"%s" on' dev.name)
+                    self.logger.info('"%s" on' % dev.name)
                     dev.updateStateOnServer(key='onOffState', value=True)
                     self.setGroupSpeedIndex(dev, onLevel)
                     if self.deviceDict[dev.id]['nextTemp']:
                         self.deviceDict[dev.id]['nextTemp'] = time.time() + int(theProps['tempFreq'])
             elif not onFlag and dev.onState:
-                self.logger.info('"%s" off' dev.name)
+                self.logger.info('"%s" off' % dev.name)
                 dev.updateStateOnServer(key='onOffState', value=False)
                 if theProps['offOverride'] or allLev:
                     self.setGroupSpeedIndex(dev, 0)
