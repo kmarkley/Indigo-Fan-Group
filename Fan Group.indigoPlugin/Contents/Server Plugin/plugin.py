@@ -87,20 +87,19 @@ class Plugin(indigo.PluginBase):
         self.logger.debug("deviceStartComm: "+dev.name)
         if dev.version != self.pluginVersion:
             self.updateDeviceVersion(dev)
-        if dev.id not in self.deviceDict:
-            theProps = dev.pluginProps
-            fanDict = {}
-            for fanId in theProps.get('fans',[]):
-                fanDict[int(fanId)] = indigo.devices[int(fanId)]
-            thermId = int(theProps.get('thermostat',"0"))
-            if thermId:
-                therm = indigo.devices[thermId]
-                nextTemp = time.time() + int(theProps.get('tempFreq',"300"))
-            else:
-                therm = None
-                nextTemp = None
-            self.deviceDict[dev.id] = {'dev':dev, 'fanDict':fanDict, 'therm':therm, 'nextTemp':nextTemp}
-            self.updateDeviceStatus(dev)
+        theProps = dev.pluginProps
+        fanDict = {}
+        for fanId in theProps.get('fans',[]):
+            fanDict[int(fanId)] = indigo.devices[int(fanId)]
+        thermId = int(theProps.get('thermostat',"0"))
+        if thermId:
+            therm = indigo.devices[thermId]
+            nextTemp = time.time() + int(theProps.get('tempFreq',"300"))
+        else:
+            therm = None
+            nextTemp = None
+        self.deviceDict[dev.id] = {'dev':dev, 'fanDict':fanDict, 'therm':therm, 'nextTemp':nextTemp}
+        self.updateDeviceStatus(dev)
     
     ########################################
     def deviceStopComm(self, dev):
@@ -163,9 +162,9 @@ class Plugin(indigo.PluginBase):
                     fanIndex += float(fan.speedIndex)
                 setSpeed = int(round(fanIndex/len(fanDict)))
             elif statusLogic == "min":
-                setSpeed = min(fan.speedLevel for fanId, fan in fanDict.items())
+                setSpeed = min(fan.speedIndex for fanId, fan in fanDict.items())
             elif statusLogic == "max":
-                setSpeed = max(fan.speedLevel for fanId, fan in fanDict.items())
+                setSpeed = max(fan.speedIndex for fanId, fan in fanDict.items())
             elif statusLogic == "all":
                 for i in range(4):
                     if all(fan.speedIndex == i for fanId, fan in fanDict.items()):
@@ -187,9 +186,9 @@ class Plugin(indigo.PluginBase):
                     fanIndex += float(fan.speedIndex)
                 onState = int(round(fanIndex/len(fanDict))) >= onLevel
             elif statusLogic == "min":
-                onState = min(fan.speedLevel for fanId, fan in fanDict.items()) >= onLevel
+                onState = min(fan.speedIndex for fanId, fan in fanDict.items()) >= onLevel
             elif statusLogic == "max":
-                onState = max(fan.speedLevel for fanId, fan in fanDict.items()) >= onLevel
+                onState = max(fan.speedIndex for fanId, fan in fanDict.items()) >= onLevel
             elif statusLogic == "all":
                 onState = all(fan.speedIndex == onLevel for fanId, fan in fanDict.items())
             dev.updateStateOnServer(key='onOffState', value=onState)
