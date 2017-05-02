@@ -6,7 +6,7 @@ Virtual device groups for speedcontrol (fan) devices.
 
 The plugin defines three Device types: Fan Group Full, Fan Group Simple, and Thermostat Assist.
 
-### Fan Group Full
+### Speedcontrol Fan Group
 
 #### Configuration
 
@@ -17,13 +17,13 @@ The plugin defines three Device types: Fan Group Full, Fan Group Simple, and The
 	* All Match: the device will only have a speed if ALL fans are the same.
 
 * **Select Fans**  
-Self explanatory. 
+Self explanatory.
 
 #### Use
 
 The device is a standard speedcontrol device.  You can set it's speed like any fan and all the controlled fans will be set to match.  It will reflect the status of controlled fans when they change according to the Status Logic set in the configuration.
 
-### Fan Group Simple
+### Relay Fan Group
 
 #### Configuration
 
@@ -38,13 +38,13 @@ The speed to set selected fans when the device turns ON.
 	* All Match: the device is only on if ALL speeds equal the ON Level.
 
 * **Select Fans**  
-Self explanatory. 
+Self explanatory.
 
 #### Use
 
 The device is a normal relay device.  When turned ON, all the controlled fans will be set to the ON Level defined in the configuration.  The device will show ON if the Status Logic conditions are met.
 
-### Thermostat Assist
+### Thermostat Assist Fan Group
 
 #### Configuration
 
@@ -70,7 +70,7 @@ If unchecked, the device will not turn on fans unless they are all off at time o
 If unchecked, the device will not turn off fans if any are at a different speed than the ON Level.
 
 * **Select Fans**  
-Self explanatory. 
+Self explanatory.
 
 #### Use
 

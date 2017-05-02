@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <Devices>
 	<Device type='speedcontrol' id='fanGroupFull'>
-	    <Name>Fan Group Full</Name>
+	    <Name>Speedcontrol Fan Group</Name>
 	    <ConfigUI>
 	        <Field id='statusLogic' type='menu' defaultValue='avg'>
 	            <Label>Status Logic:</Label>
@@ -20,7 +20,7 @@
         </ConfigUI>
     </Device>
 	<Device type='relay' id='fanGroupSimple'>
-	    <Name>Fan Group Simple</Name>
+	    <Name>Relay Fan Group</Name>
 	    <ConfigUI>
 	        <Field id='onLevel' type='menu' defaultValue='1'>
 	            <Label>ON Level:</Label>
@@ -49,7 +49,7 @@
         </ConfigUI>
     </Device>
 	<Device type='sensor' id='thermAssist'>
-	    <Name>Thermostat Assist</Name>
+	    <Name>Thermostat Assist Fan Group</Name>
 	    <ConfigUI>
 	        <Field id='thermostat' type='menu'>
 	            <Label>Thermostat:</Label>
