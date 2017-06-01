@@ -256,7 +256,6 @@ class Plugin(indigo.PluginBase):
 
             self.id         = device.id
             self.onLevel    = 0
-            self.lastLevel  = 1
             self.refresh(device)
 
             self.fanDict    = dict()
@@ -268,10 +267,7 @@ class Plugin(indigo.PluginBase):
         #-------------------------------------------------------------------------------
         def turnOn(self):
             self.logger.info('"{}" on'.format(self.name))
-            if self.onLevel:
-                self.setSpeedIndex(self.onLevel)
-            else:
-                self.setSpeedIndex(self.lastLevel)
+            self.setSpeedIndex(self.onLevel)
 
         #-------------------------------------------------------------------------------
         def turnOff(self):
@@ -290,8 +286,6 @@ class Plugin(indigo.PluginBase):
             self.logger.info('"{}" set motor speed to {}'.format(self.name, kSpeedIndex[speedIndex]))
             for fanId, fan in self.fanDict.items():
                 fan.setSpeedIndex(speedIndex)
-            if speedIndex:
-                self.lastLevel = speedIndex
 
         #-------------------------------------------------------------------------------
         def increaseSpeedIndex(self, value):
