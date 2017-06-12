@@ -185,7 +185,7 @@ class Plugin(indigo.PluginBase):
             devGroup.updateGroup()
         # UNKNOWN
         else:
-            self.logger.debug('"{}" {} request ignored'.format(dev.name, unicode(action.speedControlAction)))
+            self.logger.error('"{}" {} request ignored'.format(dev.name, unicode(action.speedControlAction)))
 
     #-------------------------------------------------------------------------------
     def actionControlDimmerRelay(self, action, device):
@@ -474,11 +474,13 @@ class Plugin(indigo.PluginBase):
 
         #-------------------------------------------------------------------------------
         def setSpeedIndex(self, speedIndex):
-            indigo.speedcontrol.setSpeedIndex(self.id, value=speedIndex)
+            if self.speedIndex != speedIndex:
+                indigo.speedcontrol.setSpeedIndex(self.id, value=speedIndex)
 
         #-------------------------------------------------------------------------------
         def setSpeedLevel(self, speedLevel):
-            indigo.speedcontrol.setSpeedLevel(self.id, value=speedLevel)
+            if self.speedLevel != speedLevel:
+                indigo.speedcontrol.setSpeedLevel(self.id, value=speedLevel)
 
     ###############################################################################
     class MonitoredThermostat(object):
