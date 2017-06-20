@@ -432,16 +432,14 @@ class Plugin(indigo.PluginBase):
             onFlag      = (self.therm.coolOn or self.therm.heatOn) and (onLimit or offLimit)
 
             if onFlag and (not self.onState):
-                if self.onOverride or (not self.any):
-                    self.onState = True
-                    self.device.updateStateOnServer(key='onOffState', value=self.onState)
-                    self.turnOn()
-                    self.nextTemp = time.time() + self.tempFreq
+                self.onState = True
+                self.device.updateStateOnServer(key='onOffState', value=self.onState)
+                self.turnOn()
+                self.nextTemp = time.time() + self.tempFreq
             elif (not onFlag) and self.onState:
                 self.onState = False
                 self.device.updateStateOnServer(key='onOffState', value=self.onState)
-                if self.offOverride or (self.all == self.onLevel):
-                    self.turnOff()
+                self.turnOff()
 
         #-------------------------------------------------------------------------------
         def thermUpdated(self, oldDev, newDev):
@@ -456,6 +454,14 @@ class Plugin(indigo.PluginBase):
                 self.logger.debug("thermostat status request: "+self.therm.name)
                 indigo.device.statusRequest(self.therm.id, suppressLogging=(not self.plugin.debug))
                 self.nextTemp = time.time() + self.tempFreq
+
+        #-------------------------------------------------------------------------------
+        def setSpeedIndex(self, speedIndex):
+            self.logger.info('"{}" set motor speed to {}'.format(self.name, kSpeedIndex[speedIndex]))
+            for fanId, fan in self.fanDict.items():
+                if (    speedIndex and (self.onOverride or not fan.speedIndex)) or \
+                   (not speedIndex and (self.offOverride or    fan.speedIndex == self.onLevel)):
+                    fan.setSpeedIndex(speedIndex)
 
     ###############################################################################
     class ControlledFan(object):
