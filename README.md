@@ -58,16 +58,16 @@ The plugin can optionally query the thermostat periodically for temperature chan
 The speed to set selected fans when the device turns ON.
 
 * **ON Threshold**  
-The minimum temerature differential required for the device to turn ON.
+The minimum temperature differential required for the device to turn ON.
 
 * **OFF Threshold**  
-The maximum temerature differential required for the device to turn OFF.
+The maximum temperature differential before the device is turned OFF.
 
 * **Override ON**  
-If unchecked, the device will not turn on fans unless they are all off at time of activation.
+If unchecked, the device will only turn on fans that are off at time of activation.
 
 * **Override OFF**  
-If unchecked, the device will not turn off fans if any are at a different speed than the ON Level.
+If unchecked, the device will only turn off fans that are at the ON Level.
 
 * **Select Fans**  
 Self explanatory.

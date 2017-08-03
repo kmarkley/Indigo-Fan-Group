@@ -72,7 +72,6 @@ class Plugin(indigo.PluginBase):
         except self.StopThread:
             pass    # Optionally catch the StopThread exception and do any needed cleanup.
 
-
     #-------------------------------------------------------------------------------
     # Device Methods
     #-------------------------------------------------------------------------------
