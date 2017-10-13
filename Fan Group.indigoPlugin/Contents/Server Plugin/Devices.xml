@@ -69,7 +69,7 @@
                 </List>
             </Field>
             <Field id='freqLabel' type='label' fontColor='darkgray' fontSize='small' alignWithControl='true'>
-                <Label>How often should plugin request temperature update from thermostat when device is active?</Label>
+                <Label>How often should plugin request temperature update from thermostat when this device is active?</Label>
             </Field>
             <Field id='thermSep' type='separator'/>
 	        <Field id='onLevel' type='menu' defaultValue='1'>
@@ -88,11 +88,11 @@
             </Field>
             <Field id='onOverride' type='checkbox' defaultValue='true'>
                 <Label>Override ON?:</Label>
-                <Description>Set fans to ON level regardless of prior state.</Description>
+                <Description>Set fans to ON level regardless of current state.</Description>
             </Field>
             <Field id='offOverride' type='checkbox' defaultValue='true'>
                 <Label>Override OFF?:</Label>
-                <Description>Turn fans OFF regardless of changes since ON.</Description>
+                <Description>Turn fans OFF regardless of current state.</Description>
             </Field>
             <Field id='fansSep' type='separator'/>
             <Field id='fans' type='list' rows='8'>
