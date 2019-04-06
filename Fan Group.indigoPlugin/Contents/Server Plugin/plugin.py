@@ -5,7 +5,6 @@
 
 import indigo
 import time
-from ghpu import GitHubPluginUpdater
 
 # Note the "indigo" module is automatically imported and made available inside
 # our global name space by the host process.
@@ -20,14 +19,11 @@ kSpeedIndex = {
     3:  'high',
     }
 
-k_updateCheckHours = 24
-
 ################################################################################
 class Plugin(indigo.PluginBase):
     ########################################
     def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
         indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
-        self.updater = GitHubPluginUpdater(self)
 
     def __del__(self):
         indigo.PluginBase.__del__(self)
@@ -36,7 +32,6 @@ class Plugin(indigo.PluginBase):
     # Start, Stop and Config changes
     #-------------------------------------------------------------------------------
     def startup(self):
-        self.nextCheck = self.pluginPrefs.get('nextUpdateCheck',0)
         self.debug = self.pluginPrefs.get('showDebugInfo',False)
         self.logger.debug("startup")
         if self.debug:
@@ -47,7 +42,6 @@ class Plugin(indigo.PluginBase):
     #-------------------------------------------------------------------------------
     def shutdown(self):
         self.logger.debug("shutdown")
-        self.pluginPrefs['nextUpdateCheck'] = self.nextCheck
         self.pluginPrefs['showDebugInfo'] = self.debug
 
     #-------------------------------------------------------------------------------
@@ -66,8 +60,6 @@ class Plugin(indigo.PluginBase):
                 loopTime = time.time()
                 for devId, device in self.deviceDict.items():
                     device.loopAction()
-                if loopTime > self.nextCheck:
-                    self.checkForUpdates()
                 self.sleep(loopTime+10-time.time())
         except self.StopThread:
             pass    # Optionally catch the StopThread exception and do any needed cleanup.
@@ -229,27 +221,6 @@ class Plugin(indigo.PluginBase):
 
     #-------------------------------------------------------------------------------
     # Menu Methods
-    #-------------------------------------------------------------------------------
-    def checkForUpdates(self):
-        try:
-            self.updater.checkForUpdate()
-        except Exception as e:
-            msg = 'Check for update error.  Next attempt in {} hours.'.format(k_updateCheckHours)
-            if self.debug:
-                self.logger.exception(msg)
-            else:
-                self.logger.error(msg)
-                self.logger.debug(e)
-        self.nextCheck = time.time() + k_updateCheckHours*60*60
-
-    #-------------------------------------------------------------------------------
-    def updatePlugin(self):
-        self.updater.update()
-
-    #-------------------------------------------------------------------------------
-    def forceUpdate(self):
-        self.updater.update(currentVersion='0.0.0')
-
     #-------------------------------------------------------------------------------
     def toggleDebug(self):
         if self.debug:
