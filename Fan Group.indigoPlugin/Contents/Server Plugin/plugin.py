@@ -180,11 +180,11 @@ class Plugin(indigo.PluginBase):
             devGroup.decreaseSpeedIndex(action.actionValue)
         # STATUS REQUEST
         elif action.speedControlAction == indigo.kUniversalAction.RequestStatus:
-            self.logger.info('"{}" status update'.format(device.name))
+            self.logger.info(f'"{device.name}" status update')
             devGroup.updateGroup()
         # UNKNOWN
         else:
-            self.logger.error('"{}" {} request ignored'.format(dev.name, unicode(action.speedControlAction)))
+            self.logger.error(f'"{device.name}" {str(action.speedControlAction)} request ignored')
 
     #-------------------------------------------------------------------------------
     def actionControlDimmerRelay(self, action, device):
@@ -201,11 +201,11 @@ class Plugin(indigo.PluginBase):
             devGroup.toggle()
         # STATUS REQUEST
         elif action.deviceAction == indigo.kUniversalAction.RequestStatus:
-            self.logger.info('"{}" status update'.format(device.name))
+            self.logger.info(f'"{device.name}" status update')
             devGroup.updateGroup()
         # UNKNOWN
         else:
-            self.logger.debug('"{}" {} request ignored'.format(dev.name, unicode(action.speedControlAction)))
+            self.logger.debug(f'"{device.name}" {str(action.speedControlAction)} request ignored')
 
     #-------------------------------------------------------------------------------
     def actionControlSensor(self, action, device):
@@ -213,11 +213,11 @@ class Plugin(indigo.PluginBase):
         devGroup = self.deviceDict[device.id]
         # STATUS REQUEST
         if action.sensorAction == indigo.kUniversalAction.RequestStatus:
-            self.logger.info('"{}" status update'.format(device.name))
+            self.logger.info(f'"{device.name}" status update')
             devGroup.updateGroup()
         # UNKNOWN
         else:
-            self.logger.debug('"{}" {} request ignored'.format(dev.name, unicode(action.speedControlAction)))
+            self.logger.debug(f'"{device.name}" {str(action.speedControlAction)} request ignored')
 
     #-------------------------------------------------------------------------------
     # Menu Methods
@@ -251,7 +251,7 @@ class Plugin(indigo.PluginBase):
         def __init__(self, device, plugin):
             self.plugin     = plugin
             self.logger     = plugin.logger
-            self.logger.debug("FanGroup.__init__: {}".format(device.id))
+            self.logger.debug(f'FanGroup.__init__: {device.id}')
 
             self.id         = device.id
             self.onLevel    = 0
@@ -265,12 +265,12 @@ class Plugin(indigo.PluginBase):
         # action methods
         #-------------------------------------------------------------------------------
         def turnOn(self):
-            self.logger.info('"{}" on'.format(self.name))
+            self.logger.info(f'"{self.name}" on')
             self.setSpeedIndex(self.onLevel)
 
         #-------------------------------------------------------------------------------
         def turnOff(self):
-            self.logger.info('"{}" off'.format(self.name))
+            self.logger.info(f'"{self.name}" off')
             self.setSpeedIndex(0)
 
         #-------------------------------------------------------------------------------
@@ -282,7 +282,7 @@ class Plugin(indigo.PluginBase):
 
         #-------------------------------------------------------------------------------
         def setSpeedIndex(self, speedIndex):
-            self.logger.info('"{}" set motor speed to {}'.format(self.name, kSpeedIndex[speedIndex]))
+            self.logger.info(f'"{self.name}" set motor speed to {kSpeedIndex[speedIndex]}')
             for fanId, fan in self.fanDict.items():
                 fan.setSpeedIndex(speedIndex)
 
@@ -296,7 +296,7 @@ class Plugin(indigo.PluginBase):
 
         #-------------------------------------------------------------------------------
         def setSpeedLevel(self, speedLevel):
-            self.logger.info('"{}" set motor speed to {}'.format(self.name, speedLevel))
+            self.logger.info(f'"{self.name}" set motor speed to {speedLevel}')
             for fanId, fan in self.fanDict.items():
                 fan.setSpeedLevel(speedLevel)
 
@@ -306,7 +306,7 @@ class Plugin(indigo.PluginBase):
         def refresh(self, device=None):
             if not device:
                 device  = indigo.devices[self.id]
-            self.logger.debug("FanGroup.refresh: {}".format(device.name))
+            self.logger.debug("FanGroup.refresh: {device.name}")
             self.device = device
             self.name   = device.name
             self.props  = device.pluginProps
@@ -315,7 +315,7 @@ class Plugin(indigo.PluginBase):
         #-------------------------------------------------------------------------------
         def fanUpdated(self, oldDev, newDev):
             if newDev.id in self.fanDict:
-                self.logger.debug("FanGroup.fanUpdated: {} ({})".format(self.name, newDev.name))
+                self.logger.debug(f'FanGroup.fanUpdated: {self.name} ({newDev.name})')
                 self.fanDict[newDev.id].refresh(newDev)
                 self.updateGroup()
 
@@ -443,7 +443,7 @@ class Plugin(indigo.PluginBase):
         #-------------------------------------------------------------------------------
         def thermUpdated(self, oldDev, newDev):
             if newDev.id == self.thermId:
-                self.logger.debug("GroupThermAssist.thermUpdated: {} ({})".format(self.name, newDev.name))
+                self.logger.debug(f'GroupThermAssist.thermUpdated: {self.name} ({newDev.name})')
                 self.therm.refresh(newDev)
                 self.updateState()
 
@@ -456,7 +456,7 @@ class Plugin(indigo.PluginBase):
 
         #-------------------------------------------------------------------------------
         def setSpeedIndex(self, speedIndex):
-            self.logger.info('"{}" set motor speed to {}'.format(self.name, kSpeedIndex[speedIndex]))
+            self.logger.info(f'"{self.name}" set motor speed to {kSpeedIndex[speedIndex]}')
             for fanId, fan in self.fanDict.items():
                 if (    speedIndex and (self.onOverride or not fan.speedIndex)) or \
                    (not speedIndex and (self.offOverride or    fan.speedIndex == self.onLevel)):
